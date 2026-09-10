@@ -7,9 +7,17 @@ Monitors token usage in session and auto resumes the task when session limit res
 Renders Claude Code's session state as a two-line status bar:
 
 ```
-[Opus 5 (1M context)] | ⚡ xhigh | 📁 session-monitor | 🌿 main
-███████░░░░░░░░░░░░░ 36% | $25.58 | ⏱ 49m 53s
+[Opus 5 (1M context)] | ⚡ xhigh | 📁 session-monitor | ⎇ main
+5h ██░░░░░░░░ 18% ↻ 4:40pm | 7d █░░░░░░░░░ 8% ↻ Sep 5, 12:30pm | context: 7% | ⏱ 7m 0s | $1.12
 ```
+
+`5h` and `7d` are the account-wide rolling quotas that `/usage` reports, with their
+local reset times; `context:` is this session's context window. A quota segment is
+omitted entirely until Claude Code has loaded usage data, rather than showing 0%.
+Reset times carry a date when they don't land today. Bars and the context figure
+turn orange at 60% and red at 85%. `BAR_WIDTH` sets the bar size.
+
+Run `python test_statusline.py` to check the quota segments.
 
 ### Install
 
