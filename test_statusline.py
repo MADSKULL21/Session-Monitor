@@ -41,15 +41,15 @@ payload = limits(
 )
 
 # bar, rounded percentage, and a bare clock when the reset lands today
-assert plain(rate_limit(payload, "five_hour", "5h")) == "5h ██░░░░░░░░ 18% ↻ 4:40pm"
+assert plain(rate_limit(payload, "five_hour", "5h")) == "5h ██░░░░░░░░ 18% 🔄 4:40pm"
 
 # a reset on another day carries the date, so "12:30pm" can't be misread as today
-assert plain(rate_limit(payload, "seven_day", "7d")) == "7d █░░░░░░░░░ 8% ↻ Sep 5, 12:30pm"
+assert plain(rate_limit(payload, "seven_day", "7d")) == "7d █░░░░░░░░░ 8% 🔄 Sep 5, 12:30pm"
 
 # a same-day reset an hour from now stays undated
 soon = datetime.now() + timedelta(hours=1)
 if soon.date() == datetime.now().date():
-    assert "↻ " + soon.strftime("%I:%M%p").lstrip("0").lower() in plain(
+    assert "🔄 " + soon.strftime("%I:%M%p").lstrip("0").lower() in plain(
         rate_limit(limits(five_hour={"used_percentage": 1, "resets_at": soon.timestamp()}), "five_hour", "5h")
     )
 
@@ -77,9 +77,13 @@ hot = rate_limit(limits(five_hour={"used_percentage": 91}), "five_hour", "5h")
 assert hot.count(RED) == 2, hot          # bar fill + percentage, not just one
 assert OLIVE not in hot and ORANGE not in hot
 
-# context: rides the same thresholds as the bars
+# context gets a bar on the top line, on the same thresholds as the quotas
 for pct, colour in ((7, OLIVE), (72, ORANGE), (91, RED)):
-    line = render({"context_window": {"used_percentage": pct}}).splitlines()[1]
-    assert f"context: {colour}{pct}%" in line, line
+    line = render({"context_window": {"used_percentage": pct}}).splitlines()[0]
+    assert f"🧠 {colour}" in line and f"{colour}{pct}%" in line, line
+
+# worktree name when inside a linked worktree, a placeholder otherwise
+assert "🌳 no worktree" in plain(render({}).splitlines()[1])
+assert "🌳 feature-xyz" in plain(render({"workspace": {"git_worktree": "feature-xyz"}}).splitlines()[1])
 
 print("ok")

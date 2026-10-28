@@ -2,8 +2,8 @@
 
 Reads the session JSON that Claude Code pipes to stdin and prints two lines:
 
-    [Opus 5 (1M context)] * xhigh | <dir> | <branch>
-    5h <bar> 18% 4:40pm | 7d <bar> 8% Sep 5, 12:30pm | context: 36% | 49m 53s | $25.58
+    <robot> Opus 5 (1M context) | <brain> <bar> 36% | 5h <bar> 18% 4:40pm | 7d <bar> 8% Sep 5, 12:30pm
+    <dir> | <worktree> | <branch> | xhigh | 49m 53s | $25.58
 
 Wired up via settings.json -> statusLine.
 """
@@ -87,6 +87,11 @@ def bar(pct):
     return f"{level_color(pct)}{'█' * filled}{DARK}{'░' * (BAR_WIDTH - filled)}{RESET}"
 
 
+def gauge(label, pct):
+    """Label, bar and percentage, the number coloured to match its bar."""
+    return f"{label} {bar(pct)} {level_color(pct)}{round(pct)}%{RESET}"
+
+
 def reset_at(ts):
     """Local clock for a reset epoch, dated when it isn't today.
 
@@ -111,10 +116,9 @@ def rate_limit(data, window, label):
     if not limit:
         return None
 
-    pct = limit.get("used_percentage") or 0
-    out = f"{label} {bar(pct)} {level_color(pct)}{round(pct)}%{RESET}"
+    out = gauge(label, limit.get("used_percentage") or 0)
     try:
-        return f"{out} {GREY}↻ {reset_at(limit['resets_at'])}{RESET}"
+        return f"{out} {GREY}🔄 {reset_at(limit['resets_at'])}{RESET}"
     except (KeyError, TypeError, ValueError, OSError, OverflowError):
         return out
 
@@ -139,27 +143,28 @@ def main():
     cwd = data.get("workspace", {}).get("current_dir") or data.get("cwd") or "."
     sep = f" {GREY}|{RESET} "
 
+    ctx = data.get("context_window", {}).get("used_percentage") or 0
     top = [
-        f"{TEAL}[{model_label(data)}]{RESET}",
-        f"{ORANGE}⚡ {data.get('effort', {}).get('level', 'medium')}{RESET}",
+        f"🤖 {TEAL}{model_label(data)}{RESET}",
+        gauge("🧠", ctx),
+        rate_limit(data, "five_hour", "5h"),
+        rate_limit(data, "seven_day", "7d"),
+    ]
+    top = [seg for seg in top if seg]
+
+    # git_worktree is set for any linked worktree, not just --worktree sessions.
+    worktree = data.get("workspace", {}).get("git_worktree")
+    bottom = [
         f"📁 {WHITE}{os.path.basename(cwd.rstrip('/\\')) or cwd}{RESET}",
+        f"🌳 {WHITE}{worktree}{RESET}" if worktree else f"🌳 {GREY}no worktree{RESET}",
     ]
     branch = git_branch(cwd, data.get("session_id", "default"))
     if branch:
-        top.append(f"⎇ {WHITE}{branch}{RESET}")
+        bottom.append(f"🌿 {WHITE}{branch}{RESET}")
 
     cost = data.get("cost", {})
-    ctx = data.get("context_window", {}).get("used_percentage") or 0
-    bottom = [
-        seg
-        for seg in (
-            rate_limit(data, "five_hour", "5h"),
-            rate_limit(data, "seven_day", "7d"),
-        )
-        if seg
-    ]
     bottom += [
-        f"context: {level_color(ctx)}{round(ctx)}%{RESET}",
+        f"{ORANGE}⚡ {data.get('effort', {}).get('level', 'medium')}{RESET}",
         f"⏱ {WHITE}{duration(cost.get('total_duration_ms', 0))}{RESET}",
         f"{GREEN}${cost.get('total_cost_usd', 0):.2f}{RESET}",
     ]
