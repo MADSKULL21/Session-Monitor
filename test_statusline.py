@@ -83,7 +83,7 @@ for pct, colour in ((7, OLIVE), (72, ORANGE), (91, RED)):
     assert f"🧠 {colour}" in line and f"{colour}{pct}%" in line, line
 
 # worktree name when inside a linked worktree, a placeholder otherwise
-assert "🌳 no worktree" in plain(render({}).splitlines()[1])
-assert "🌳 feature-xyz" in plain(render({"workspace": {"git_worktree": "feature-xyz"}}).splitlines()[1])
+assert "⧉ no worktree" in plain(render({}).splitlines()[1])
+assert "⧉ feature-xyz" in plain(render({"workspace": {"git_worktree": "feature-xyz"}}).splitlines()[1])
 
 print("ok")

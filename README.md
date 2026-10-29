@@ -8,13 +8,13 @@ Renders Claude Code's session state as a two-line status bar:
 
 ```
 🤖 Opus 5 (1M context) | 🧠 ███░░░░░░░ 27% | 5h ██░░░░░░░░ 18% 🔄 4:40pm | 7d █░░░░░░░░░ 8% 🔄 Sep 5, 12:30pm
-📁 session-monitor | 🌳 no worktree | 🌿 main | ⚡ xhigh | ⏱ 7m 0s | $1.12
+📁 session-monitor | ⧉ no worktree | ⎇ main | ⚡ xhigh | ⏱ 7m 0s | $1.12
 ```
 
 🧠 is this session's context window. `5h` and `7d` are the account-wide rolling
 quotas that `/usage` reports, with their local reset times. A quota segment is
 omitted entirely until Claude Code has loaded usage data, rather than showing 0%.
-Reset times carry a date when they don't land today. 🌳 shows the linked git
+Reset times carry a date when they don't land today. ⧉ shows the linked git
 worktree's name, or `no worktree` in the main working tree. Bars and percentages
 turn orange at 60% and red at 85%. `BAR_WIDTH` sets the bar size.
 

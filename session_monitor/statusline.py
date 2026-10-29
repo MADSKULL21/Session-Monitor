@@ -156,11 +156,11 @@ def main():
     worktree = data.get("workspace", {}).get("git_worktree")
     bottom = [
         f"📁 {WHITE}{os.path.basename(cwd.rstrip('/\\')) or cwd}{RESET}",
-        f"🌳 {WHITE}{worktree}{RESET}" if worktree else f"🌳 {GREY}no worktree{RESET}",
+        f"⧉ {WHITE}{worktree}{RESET}" if worktree else f"⧉ {GREY}no worktree{RESET}",
     ]
     branch = git_branch(cwd, data.get("session_id", "default"))
     if branch:
-        bottom.append(f"🌿 {WHITE}{branch}{RESET}")
+        bottom.append(f"⎇ {WHITE}{branch}{RESET}")
 
     cost = data.get("cost", {})
     bottom += [
