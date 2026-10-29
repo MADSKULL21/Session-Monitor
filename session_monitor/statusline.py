@@ -151,7 +151,7 @@ def flush_right(line, art, columns):
     gap = columns - RIGHT_MARGIN - width(line) - width(art)
     if gap < 2:
         return line
-    return f"{line}{' ' * gap}{WHITE}{art}{RESET}"
+    return f"{line}{' ' * gap}{TEAL}{art}{RESET}"
 
 
 def main():
