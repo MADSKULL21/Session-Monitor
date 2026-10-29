@@ -2,11 +2,14 @@
 
 import io
 import json
+import os
 import re
 import sys
 from datetime import datetime, timedelta
 
-from session_monitor.statusline import OLIVE, ORANGE, RED, level_color, main, model_label, rate_limit
+from session_monitor.statusline import (
+    OLIVE, ORANGE, RED, RIGHT_MARGIN, level_color, main, model_label, rate_limit, width,
+)
 
 
 def plain(text):
@@ -85,5 +88,14 @@ for pct, colour in ((7, OLIVE), (72, ORANGE), (91, RED)):
 # worktree name when inside a linked worktree, a placeholder otherwise
 assert "⧉ no worktree" in plain(render({}).splitlines()[1])
 assert "⧉ feature-xyz" in plain(render({"workspace": {"git_worktree": "feature-xyz"}}).splitlines()[1])
+
+# the robot ends both rows at the same column, flush right; a narrow terminal drops it
+os.environ["COLUMNS"] = "160"
+top, bottom = (plain(line) for line in render({"model": {"display_name": "Opus 5"}}).splitlines())
+assert top.endswith("[ ·  · ]") and bottom.endswith("[ ==== ]"), (top, bottom)
+assert width(top) == width(bottom) == 160 - RIGHT_MARGIN, (width(top), width(bottom))
+os.environ["COLUMNS"] = "40"
+assert "[ ====" not in render({})
+assert width("🤖 ⏱ ⧉") == 6  # emoji take two cells, text symbols one
 
 print("ok")

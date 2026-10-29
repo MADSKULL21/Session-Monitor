@@ -2,17 +2,20 @@
 
 Reads the session JSON that Claude Code pipes to stdin and prints two lines:
 
-    <robot> Opus 5 (1M context) | <brain> <bar> 36% | 5h <bar> 18% 4:40pm | 7d <bar> 8% Sep 5, 12:30pm
-    <dir> | <worktree> | <branch> | xhigh | 49m 53s | $25.58
+    <robot> Opus 5 (1M context) | <brain> <bar> 36% | 5h <bar> 18% 4:40pm | 7d <bar> 8% Sep 5, 12:30pm   [ ·  · ]
+    <dir> | <worktree> | <branch> | xhigh | 49m 53s | $25.58                                           [ ==== ]
 
 Wired up via settings.json -> statusLine.
 """
 
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 import time
+import unicodedata
 from datetime import datetime
 
 # 256-colour palette, matched to the reference screenshot.
@@ -28,6 +31,11 @@ RESET = "\033[0m"
 
 BAR_WIDTH = 10
 GIT_CACHE_TTL = 5.0
+
+# Drawn flush right, one row per status line.
+ROBOT = ("[ ·  · ]", "[ ==== ]")
+# Claude Code indents the status line; this slack keeps the robot from wrapping.
+RIGHT_MARGIN = 4
 
 
 def git_branch(cwd, session_id):
@@ -132,6 +140,20 @@ def duration(ms):
     return f"{minutes}m {seconds}s"
 
 
+def width(text):
+    """Cells text takes on screen: ANSI dropped, wide chars (emoji) count two."""
+    plain = re.sub(r"\033\[[0-9;]*m", "", text)
+    return sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in plain)
+
+
+def flush_right(line, art, columns):
+    """Pad line so art ends at the right edge; drop art when there's no room."""
+    gap = columns - RIGHT_MARGIN - width(line) - width(art)
+    if gap < 2:
+        return line
+    return f"{line}{' ' * gap}{WHITE}{art}{RESET}"
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
@@ -169,8 +191,9 @@ def main():
         f"{GREEN}${cost.get('total_cost_usd', 0):.2f}{RESET}",
     ]
 
-    print(sep.join(top))
-    print(sep.join(bottom))
+    columns = shutil.get_terminal_size().columns  # Claude Code sets COLUMNS
+    for line, art in zip((sep.join(top), sep.join(bottom)), ROBOT):
+        print(flush_right(line, art, columns))
 
 
 if __name__ == "__main__":

@@ -7,8 +7,8 @@ Monitors token usage in session and auto resumes the task when session limit res
 Renders Claude Code's session state as a two-line status bar:
 
 ```
-🤖 Opus 5 (1M context) | 🧠 ███░░░░░░░ 27% | 5h ██░░░░░░░░ 18% 🔄 4:40pm | 7d █░░░░░░░░░ 8% 🔄 Sep 5, 12:30pm
-📁 session-monitor | ⧉ no worktree | ⎇ main | ⚡ xhigh | ⏱ 7m 0s | $1.12
+🤖 Opus 5 (1M context) | 🧠 ███░░░░░░░ 27% | 5h ██░░░░░░░░ 18% 🔄 4:40pm | 7d █░░░░░░░░░ 8% 🔄 Sep 5, 12:30pm   [ ·  · ]
+📁 session-monitor | ⧉ no worktree | ⎇ main | ⚡ xhigh | ⏱ 7m 0s | $1.12                                        [ ==== ]
 ```
 
 🧠 is this session's context window. `5h` and `7d` are the account-wide rolling
@@ -17,6 +17,8 @@ omitted entirely until Claude Code has loaded usage data, rather than showing 0%
 Reset times carry a date when they don't land today. ⧉ shows the linked git
 worktree's name, or `no worktree` in the main working tree. Bars and percentages
 turn orange at 60% and red at 85%. `BAR_WIDTH` sets the bar size.
+The robot is drawn flush right using the `COLUMNS` width Claude Code passes in, and
+is dropped when the terminal is too narrow to fit it; `ROBOT` holds its two rows.
 
 Run `python test_statusline.py` to check the quota segments.
 
